@@ -62,7 +62,7 @@
 上图就是本实验的网络架构图，下面说明一下架构图的含义：
 
 - 其中有两个192.168.0.0和192.168.1.0网段的IP 的虚拟机，用它作为**中转机**；
-- 192.168.1.105、192.168.1.106以及192.168.1.107这三台机器作用**目的端**；
+- 192.168.1.105、192.168.1.106以及192.168.1.107这三台机器作为**目的端**；
 - 192.168.0.103 这台机器作为**客户端**；
 
 本实验中所需要的基本开发环境：
@@ -121,7 +121,7 @@ func tcpLocal(addr, server string, shadow func(net.Conn) net.Conn, getAddr func(
 
 这段是我截取自tcp.go中**tcpRemote**函数的代码。
 
-```
+```golang
 func tcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 	l, err := net.Listen("tcp", addr) // 监听本地端口
 	...
@@ -145,7 +145,7 @@ func tcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 }
 ```
 
-服务端处理数据流的方式与客户端类似，都是先监听本地端口，当接收到请求之后像目的地址进行流量发送。
+服务端处理数据流的方式与客户端类似，都是先监听本地端口，当接收到请求之后向目的地址进行流量发送。
 
 ### 3.3 目的端IP的读写
 
@@ -250,7 +250,7 @@ func readAddr(r io.Reader, b []byte) (Addr, error) {
 我们可以通过这段代码看出，我们可以通过buf中的第一位判断IP地址的类型，然后根据不同类型的IP来截取buf中对应长度的内容就可以获得IP地址了。
 
 ### 3.4 数据流的转发是如何实现的
-我们来看一下tcp.go文件中的``repaly()``函数。
+我们来看一下tcp.go文件中的``relay()``函数。
 ```golang
 func relay(left, right net.Conn) error {
 	var err, err1 error
@@ -319,8 +319,8 @@ func Copy(dst Writer, src Reader) (written int64, err error) {
 最后，我总结一下通过解析shadowsockets源码学习到的技术点有以下3点：
 1. 可以通过将目的端IP写入数据流中的方式让服务端知道目的IP；
 2. 在golang中可以通过io.Copy()函数实现流量的转发
-3. 遇到阻塞式函数的时候为了避免程序阻塞可以使用go routine的方式讲阻塞函数单独放到一个协程中；
-4. ``sync.WaitGroup``函数的优点是Wait()可以阻塞到队列中的所有任务都执行完才解除阻塞
+3. 遇到阻塞式函数的时候为了避免程序阻塞可以使用goroutine的方式讲阻塞函数单独放到一个协程中；
+4. ``sync.WaitGroup``函数的作用是Wait()可以阻塞到队列中的所有任务都执行完才解除阻塞
 
 ---
 
